@@ -36,7 +36,7 @@ SELECTED_COUNTRIES['world'] = [
     'China'
 ]
 
-SELECTED_COUNTRIES['europe'] = [
+SELECTED_COUNTRIES['europe-usa'] = [
     'Spain',
     'Portugal',
     'France',
@@ -46,10 +46,13 @@ SELECTED_COUNTRIES['europe'] = [
     'Sweden',   
     'Norway',
     'Denmark',
-    'Romania'
+    'Romania',
+    'USA'
 ]
 
-SELECTED_COUNTRIES['latam'] = [
+SELECTED_COUNTRIES['europe'] = [c for c in SELECTED_COUNTRIES['europe-usa'] if c != 'USA']
+
+SELECTED_COUNTRIES['latam-usa'] = [
     'Spain',
     'Brazil',
     'Mexico',
@@ -58,10 +61,6 @@ SELECTED_COUNTRIES['latam'] = [
     'Argentina',
     'El Salvador', 
     'Chile',
-]
-
-SELECTED_COUNTRIES['usa'] = [
-    'Spain',
     'USA'
 ]
 
@@ -78,11 +77,15 @@ COLOR_MAP['world'] = {
     "Africa": "#9467bd",     # Morado
 }
 
-COLOR_MAP['europe'] = {}
+COLOR_MAP['europe'] = {
+    "Spain": "#FF0000",  # Rojo brillante
+    "USA": "#ED53AF",
+}
 
-COLOR_MAP['latam'] = {}
-
-COLOR_MAP['usa'] = {}
+COLOR_MAP['latam'] = {
+    "Spain": "#FF0000",  # Rojo brillante
+    "USA": "#ED53AF",
+}
 
 #################################################################################################################
 
@@ -125,22 +128,25 @@ HOVER_DATA['time_series'] = {
     "Country": True      # Ocultar del cuerpo (ya sale en el título)
 }
 
-HOVER_DATA['ranking'] = {'Country': False}
+HOVER_DATA['ranking'] = {
+    'Country': False
+    }
 
 #################################################################################################################
 
 LABELS = {}
 
 LABELS['time_series'] = {
-    "homicides_rate": "Tasa (por 100k hab.)",
+    "homicides_rate": "Tasa de Homicidios",
     "Year": "Año",
     "Country": "País",
     "Region_2": "Región"
 }
 
 LABELS['ranking'] = {
-    "homicides_rate": "Tasa de Homicidios",
-    "Country": "País"        
+    "mean_homicides_rate": "Tasa Media de Homicidios",
+    "Country": "País" ,
+    "Region_2": "Región"      
 }
 
 #################################################################################################################

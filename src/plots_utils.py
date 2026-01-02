@@ -43,10 +43,12 @@ def time_series_plot(
         # Mostrar
         fig.show()    
 
+#################################################################################################################
+
 def barplot(
     df, x, y, orientation=None, color=None, 
     color_discrete_map=None, hover_data=None, 
-    labels=None, title=None,
+    labels=None, category_orders=None, title=None,
     plot_save_path=None, show=None
     ):
 
@@ -56,15 +58,16 @@ def barplot(
         y=y,
         orientation=orientation,       # Barras Horizontales
         color=color,   
-        color_discrete_map=color_discrete_map,
         title=title,
         hover_data=hover_data,
+        category_orders=category_orders, 
+        color_discrete_map=color_discrete_map,
         labels=labels
     )
 
     fig.update_layout(
         plot_bgcolor='white',      # Fondo limpio
-        showlegend=False,          # Ocultamos la leyenda (el color rojo se explica solo)
+        showlegend=True,          
         height=600,                # Altura ajustada a la cantidad de países
         xaxis=dict(
             showgrid=True, 
@@ -96,4 +99,6 @@ def barplot(
     
     if show:
         # Mostrar
-        fig.show()   
+        fig.show()
+
+#################################################################################################################   
