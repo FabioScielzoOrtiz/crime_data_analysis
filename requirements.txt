@@ -2,3 +2,6 @@ pandas
 polars
 eurostat 
 openpyxl
+fastexcel
+plotly
+nbformat>=4.2.0
