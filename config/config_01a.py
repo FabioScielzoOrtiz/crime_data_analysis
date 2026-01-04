@@ -1,8 +1,6 @@
 #################################################################################################################
 
-SELECTED_COUNTRIES = {}
-
-SELECTED_COUNTRIES['world'] = [
+SELECTED_COUNTRIES = [
     # --- EL PROTAGONISTA ---
     'Spain',
 
@@ -11,64 +9,45 @@ SELECTED_COUNTRIES['world'] = [
     'France',
     'Italy',
     'Germany',
-    'United Kingdom', # Ojo: En tu lista el UK está dividido
-    'Sweden',   # Importante por el debate actual sobre bandas
+    'United Kingdom', 
+    'Sweden',   # Crisis de bandas actual
     'Norway',
     'Denmark',
-    'Romania',  # Importante: gran comunidad en España
+    'Romania',  # Importante comunidad en España
+    'Greece',   # Referente mediterráneo (Tu adición)
 
-    # --- LATINOAMÉRICA (Vínculo cultural + Alta criminalidad) ---
+    # --- LATINOAMÉRICA (Vínculo cultural + Alta violencia) ---
     'Brazil',
     'Mexico',
     'Colombia',
     'Venezuela',
     'Argentina',
-    'El Salvador', # Interesante por su cambio drástico reciente
+    'El Salvador', # El efecto Bukele (Caída drástica)
     'Chile',
 
-    # --- ÁFRICA (Vínculo migratorio) ---
-    'Morocco',  # CRÍTICO: Principal origen de inmigración en España
-    'South Africa', # Referencia de alta criminalidad global
+    # --- ASIA / PACÍFICO (Modelos de seguridad y contrastes) ---
+    'Japan',        # Estándar de seguridad #1
+    'Republic of Korea',  # Estándar de seguridad #2 (NUEVO)
+    'Singapore',    # Ciudad-estado autoritaria/segura (Tu adición)
+    'China',
+    'India',
+    'Philippines',  # Nexo hispano
+    'Indonesia',    # Gigante demográfico musulmán (NUEVO)
+    'Thailand',     # Referente turístico regional (NUEVO)
+    'Türkiye',       # IMPORTANTE: UNODC suele usar 'Turkey', no 'Türkiye'
 
-    # --- POTENCIAS GLOBALES / REFERENCIAS ---
-    'USA', # El gran comparador occidental
-    'Japan',    # El estándar de seguridad máxima
-    'China'
-]
-
-SELECTED_COUNTRIES['europe-usa'] = [
-    'Spain',
-    'Portugal',
-    'France',
-    'Italy',
-    'Germany',
-    'United Kingdom',  
-    'Sweden',   
-    'Norway',
-    'Denmark',
-    'Romania',
-    'USA'
-]
-
-SELECTED_COUNTRIES['europe'] = [c for c in SELECTED_COUNTRIES['europe-usa'] if c != 'USA']
-
-SELECTED_COUNTRIES['latam-usa'] = [
-    'Spain',
-    'Brazil',
-    'Mexico',
-    'Colombia',
-    'Venezuela',
-    'Argentina',
-    'El Salvador', 
-    'Chile',
-    'USA'
+    # --- ÁFRICA (Vecindad y demografía) ---
+    'Morocco',      # Vecino frontera sur
+    'Egypt',        # Gigante del norte de África / Turismo (NUEVO)
+    'South Africa', # Outlier de violencia extrema
+    
+    # --- POTENCIA GLOBAL ---
+    'USA'           # El gran comparador occidental
 ]
 
 #################################################################################################################
 
-COLOR_MAP = {}
-
-COLOR_MAP['world'] = {
+COLOR_MAP = {
     "Spain": "#FF0000",  # Rojo brillante
     "USA": "#ED53AF",
     "Europe": "#1f77b4",     # Azul
@@ -77,59 +56,35 @@ COLOR_MAP['world'] = {
     "Africa": "#9467bd",     # Morado
 }
 
-COLOR_MAP['europe'] = {
-    "Spain": "#FF0000",  # Rojo brillante
-    "USA": "#ED53AF",
-}
-
-COLOR_MAP['latam'] = {
-    "Spain": "#FF0000",  # Rojo brillante
-    "USA": "#ED53AF",
-}
-
 #################################################################################################################
 
-CATEGORY_ORDERS = {} 
-
-CATEGORY_ORDERS['world'] = {
+CATEGORY_ORDERS = {
     "Region_2": ["Spain", "USA", "Europe", "Latam", "Africa", "Asia"]
 }
-
-CATEGORY_ORDERS['europe'] = {}
-
-CATEGORY_ORDERS['latam'] = {}
-
-CATEGORY_ORDERS['usa'] = {}
-
-#################################################################################################################
-
-PLOT_FILENAME = {}
-
-PLOT_FILENAME[('world', 'time_series')] = 'time_series_total_homicides_world.html'
-
-PLOT_FILENAME[('world', 'ranking')] = 'mean_homicides_world.html'
-
-PLOT_FILENAME[('europe', 'time_series')] = ''
-
-PLOT_FILENAME[('latam', 'time_series')] = ''
-
-PLOT_FILENAME[('usa', 'time_series')] = ''
 
 #################################################################################################################
 
 HOVER_DATA = {} 
 
 HOVER_DATA['time_series'] = {
-    "Region": True,       # Mostrar Región
-    "Subregion": True,    # Mostrar Subregión
-    "Year": True,         # Mostrar Año
-    "homicides_rate": True, # Mostrar Tasa
-    "Region_2": False, # <--- ¡ESTO OCULTA LA LEYENDA/COLOR!
-    "Country": True      # Ocultar del cuerpo (ya sale en el título)
+    "Region": False,    
+    "Region_2": False,    
+    "Subregion": False,    
+    "Country": True ,     
+    "Year": True,        
+    "homicides_rate": True, 
+    "homicides_rate_abs_change": True
 }
 
-HOVER_DATA['ranking'] = {
-    'Country': False
+HOVER_DATA['ranking_country'] = {
+    'Country': True, 
+    "Region_2": True,
+    "mean_homicides_rate": True
+    }
+
+HOVER_DATA['ranking_region'] = {
+    "Region_2": True,
+    "mean_homicides_rate": True
     }
 
 #################################################################################################################
@@ -140,7 +95,8 @@ LABELS['time_series'] = {
     "homicides_rate": "Tasa de Homicidios",
     "Year": "Año",
     "Country": "País",
-    "Region_2": "Región"
+    "Region_2": "Región",
+    "homicides_rate_abs_change": "Variación Absoluta"
 }
 
 LABELS['ranking'] = {
@@ -151,6 +107,47 @@ LABELS['ranking'] = {
 
 #################################################################################################################
 
-PROP_YEARS_IN_PERIOD_LIMIT = 0.80
+HOVER_TEMPLATES = {}
+
+HOVER_TEMPLATES['time_series'] = (
+        # Título: PAÍS (en grande y negrita)
+        "<b style='font-size: 14px'>%{customdata[3]}</b><br>" 
+        "<br>" 
+        
+        # Línea 1: AÑO
+        "<b>Año:</b> %{x}<br>"
+        
+        # Línea 2: TASA (Usando tu etiqueta exacta y formato .2f)
+        "<b>Tasa de Homicidios:</b> %{y:.2f}<br>"
+        
+        # Línea 3: VARIACIÓN (Usando tu etiqueta exacta y formato +.2f)
+        "<b>Variación Absoluta:</b> %{customdata[4]:+.2f}"
+        
+        # Ocultamos la etiqueta secundaria de la derecha
+        "<extra></extra>"
+    )
+
+HOVER_TEMPLATES['ranking'] = (
+        "<b style='font-size: 14px'>%{y}</b><br>" 
+        "<br>" 
+
+        "<b>Tasa Media de Homicidios:</b> %{x}<br>"
+        
+        "<extra></extra>"
+    )
+
+#################################################################################################################
+
+PROP_YEARS_IN_PERIOD_LIMIT = 0.65
+
+#################################################################################################################
+
+PLOT_FILENAME = {}
+
+PLOT_FILENAME['time_series'] = 'time_series_total_homicides_world.html'
+
+PLOT_FILENAME['ranking_country'] = f'mean_homicides_world_by_country.html'
+
+PLOT_FILENAME['ranking_region'] = f'mean_homicides_world_by_region.html'
 
 #################################################################################################################

@@ -1,0 +1,60 @@
+import polars as pl 
+import numpy as np 
+
+######################################################################################################################
+
+def get_ranking_selected_countries(df, selected_countries, ranking_period, prop_years_in_period_limit):
+
+    prop_year_in_period = {}
+    for c in selected_countries:
+        unique_years = df.filter(pl.col('Country') == c)['Year'].unique().to_list()
+        prop_year_in_period[c] = np.round(np.mean([x in unique_years for x in ranking_period]), 2)
+
+    ranking_selected_countries = [c for c, p in prop_year_in_period.items() if p >= prop_years_in_period_limit]
+
+    return ranking_selected_countries, prop_year_in_period
+
+######################################################################################################################
+
+def calculate_ranking_by_country(df_time_series, selected_countries, prop_years_in_period_limit, start_year, end_year):
+
+    df_regions_map = df_time_series.select(['Country', 'Region_2']).unique()
+
+    ranking_period = list(range(start_year, end_year + 1))
+        
+    ranking_selected_countries, prop_year_in_period = get_ranking_selected_countries(
+        df = df_time_series, 
+        selected_countries = selected_countries, 
+        ranking_period = ranking_period,
+        prop_years_in_period_limit = prop_years_in_period_limit
+    )
+
+    ranking_not_selected_countries = [c for c in selected_countries if c not in ranking_selected_countries]
+
+    df_ranking = df_time_series.filter(
+        pl.col('Year').is_between(start_year, end_year),
+        pl.col('Country').is_in(ranking_selected_countries)
+        ).group_by(
+        ['Country']
+        ).agg(
+            pl.mean('homicides_rate').alias('mean_homicides_rate')
+        ).with_columns(
+            pl.col('mean_homicides_rate').round(2)
+        ).join(
+            df_regions_map, 
+            on='Country', 
+            how='left'
+        ).unique().sort(
+            "mean_homicides_rate", 
+            descending=False
+        ) 
+    
+    print('ranking_period:', ranking_period)
+    print('ranking_selected_countries:', ranking_selected_countries)
+    print('ranking_not_selected_countries:', ranking_not_selected_countries)
+    print('prop_year_in_period:', prop_year_in_period)
+    print('-'*150)
+    
+    return df_ranking
+
+######################################################################################################################

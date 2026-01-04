@@ -45,7 +45,7 @@ def main():
             (pl.col('Unit of measurement') == TARGET_UNIT)
             ).drop(COLS_REMOVE)\
              .rename({'VALUE': 'homicides_rate'})\
-             .sort('Year')\
+             .with_columns(pl.col('homicides_rate').round(2))\
              .with_columns(
                     pl.when(pl.col("Country") == "Spain")
                     .then(pl.lit("Spain"))   
@@ -62,6 +62,10 @@ def main():
                             'United States of America': 'USA'
                         }
                     )
+            ).sort(
+                ["Country", "Year"]
+            ).with_columns(
+                homicides_rate_abs_change = (pl.col("homicides_rate").diff().over(["Country", "Dimension", "Category", "Sex", "Age"])).round(2)
             )
 
         # 4. Save to CSV
