@@ -16,7 +16,7 @@ def get_ranking_selected_countries(df, selected_countries, ranking_period, prop_
 
 ######################################################################################################################
 
-def calculate_ranking_by_country(df_time_series, selected_countries, prop_years_in_period_limit, start_year, end_year):
+def calculate_ranking(df_time_series, selected_countries, prop_years_in_period_limit, start_year, end_year, by):
 
     df_regions_map = df_time_series.select(['Country', 'Region_2']).unique()
 
@@ -35,11 +35,9 @@ def calculate_ranking_by_country(df_time_series, selected_countries, prop_years_
         pl.col('Year').is_between(start_year, end_year),
         pl.col('Country').is_in(ranking_selected_countries)
         ).group_by(
-        ['Country']
+        by
         ).agg(
-            pl.mean('homicides_rate').alias('mean_homicides_rate')
-        ).with_columns(
-            pl.col('mean_homicides_rate').round(2)
+            pl.mean('homicides_rate').round(2).alias('mean_homicides_rate')
         ).join(
             df_regions_map, 
             on='Country', 
@@ -49,7 +47,7 @@ def calculate_ranking_by_country(df_time_series, selected_countries, prop_years_
             descending=False
         ) 
     
-    print('ranking_period:', ranking_period)
+    print('ranking_period:', start_year, '-', end_year)
     print('ranking_selected_countries:', ranking_selected_countries)
     print('ranking_not_selected_countries:', ranking_not_selected_countries)
     print('prop_year_in_period:', prop_year_in_period)

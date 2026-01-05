@@ -47,19 +47,27 @@ SELECTED_COUNTRIES = [
 
 #################################################################################################################
 
-COLOR_MAP = {
+COLOR_MAP = {}
+
+COLOR_MAP['Region_2'] = {
     "Spain": "#FF0000",  # Rojo brillante
-    "USA": "#ED53AF",
-    "Europe": "#1f77b4",     # Azul
+    "USA": "#13020D",
+    "Europe": "#0883db",     # Azul
     "Latam": "#2ca02c",   # Verde
     "Asia": "#ff7f0e",       # Naranja
-    "Africa": "#9467bd",     # Morado
+    "Africa": "#a02ff1",     # Morado
+}
+
+COLOR_MAP['Sex'] = {
+    "Male": "#62CBDE",   
+    "Female": "#EFA0E8"
 }
 
 #################################################################################################################
 
 CATEGORY_ORDERS = {
-    "Region_2": ["Spain", "USA", "Europe", "Latam", "Africa", "Asia"]
+    "Region_2": ["Spain", "USA", "Europe", "Latam", "Africa", "Asia"],
+    "Sex": ["Female", "Male",]
 }
 
 #################################################################################################################
@@ -127,11 +135,21 @@ HOVER_TEMPLATES['time_series'] = (
         "<extra></extra>"
     )
 
-HOVER_TEMPLATES['ranking'] = (
+HOVER_TEMPLATES['ranking_country'] = (
         "<b style='font-size: 14px'>%{y}</b><br>" 
         "<br>" 
+        
+        "<b>Región:</b> %{customdata[0]}<br>"
+        "<b>Tasa Media de Homicidios:</b> %{x:.2f}<br>"
+        
+        "<extra></extra>"
+    )
 
-        "<b>Tasa Media de Homicidios:</b> %{x}<br>"
+HOVER_TEMPLATES['ranking_region'] = (
+        "<b style='font-size: 14px'>%{y}</b><br>" 
+        "<br>" 
+        
+        "<b>Tasa Media de Homicidios:</b> %{x:.2f}<br>"
         
         "<extra></extra>"
     )
