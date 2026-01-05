@@ -3,33 +3,32 @@ import numpy as np
 
 ######################################################################################################################
 
-def get_ranking_selected_countries(df, selected_countries, ranking_period, prop_years_in_period_limit):
+def get_countries_with_enough_data(df, countries, period, prop_years_in_period_limit):
 
     prop_year_in_period = {}
-    for c in selected_countries:
+    period_array = range(period[0], period[1] + 1)
+    for c in countries:
         unique_years = df.filter(pl.col('Country') == c)['Year'].unique().to_list()
-        prop_year_in_period[c] = np.round(np.mean([x in unique_years for x in ranking_period]), 2)
+        prop_year_in_period[c] = np.round(np.mean([x in unique_years for x in period_array]), 2)
 
-    ranking_selected_countries = [c for c, p in prop_year_in_period.items() if p >= prop_years_in_period_limit]
+    countries_with_enough_data = [c for c, p in prop_year_in_period.items() if p >= prop_years_in_period_limit]
 
-    return ranking_selected_countries, prop_year_in_period
+    return countries_with_enough_data, prop_year_in_period
 
 ######################################################################################################################
 
-def calculate_ranking(df_time_series, selected_countries, prop_years_in_period_limit, start_year, end_year, by):
+def calculate_ranking(df_time_series, countries, prop_years_in_period_limit, start_year, end_year, by):
 
     df_regions_map = df_time_series.select(['Country', 'Region_2']).unique()
-
-    ranking_period = list(range(start_year, end_year + 1))
-        
-    ranking_selected_countries, prop_year_in_period = get_ranking_selected_countries(
+       
+    ranking_selected_countries, prop_year_in_period = get_countries_with_enough_data(
         df = df_time_series, 
-        selected_countries = selected_countries, 
-        ranking_period = ranking_period,
+        countries=countries,
+        period = [start_year, end_year],
         prop_years_in_period_limit = prop_years_in_period_limit
     )
 
-    ranking_not_selected_countries = [c for c in selected_countries if c not in ranking_selected_countries]
+    ranking_not_selected_countries = [c for c in countries if c not in ranking_selected_countries]
 
     df_ranking = df_time_series.filter(
         pl.col('Year').is_between(start_year, end_year),

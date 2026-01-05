@@ -74,7 +74,7 @@ CATEGORY_ORDERS = {
 
 HOVER_DATA = {} 
 
-HOVER_DATA['time_series'] = {
+HOVER_DATA['time_series_country'] = {
     "Region": False,    
     "Region_2": False,    
     "Subregion": False,    
@@ -82,6 +82,12 @@ HOVER_DATA['time_series'] = {
     "Year": True,        
     "homicides_rate": True, 
     "homicides_rate_abs_change": True
+}
+
+HOVER_DATA['time_series_region'] = {
+    "Region_2": False,    
+    "Year": True,        
+    "mean_homicides_rate": True, 
 }
 
 HOVER_DATA['ranking_country'] = {
@@ -117,8 +123,7 @@ LABELS['ranking'] = {
 
 HOVER_TEMPLATES = {}
 
-HOVER_TEMPLATES['time_series'] = (
-        # Título: PAÍS (en grande y negrita)
+HOVER_TEMPLATES['time_series_country'] = (
         "<b style='font-size: 14px'>%{customdata[3]}</b><br>" 
         "<br>" 
         
@@ -130,6 +135,21 @@ HOVER_TEMPLATES['time_series'] = (
         
         # Línea 3: VARIACIÓN (Usando tu etiqueta exacta y formato +.2f)
         "<b>Variación Absoluta:</b> %{customdata[4]:+.2f}"
+        
+        # Ocultamos la etiqueta secundaria de la derecha
+        "<extra></extra>"
+    )
+
+HOVER_TEMPLATES['time_series_region'] = (
+        # Título: Region (en grande y negrita)
+        "<b style='font-size: 14px'>%{customdata[0]}</b><br>" 
+        "<br>" 
+        
+        # Línea 1: AÑO
+        "<b>Año:</b> %{x}<br>"
+        
+        # Línea 2: TASA (Usando tu etiqueta exacta y formato .2f)
+        "<b>Tasa Media de Homicidios:</b> %{y:.2f}<br>"
         
         # Ocultamos la etiqueta secundaria de la derecha
         "<extra></extra>"

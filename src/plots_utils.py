@@ -157,10 +157,6 @@ def barplot_01a(
         fig.show()
 
 #################################################################################################################
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import polars as pl
 
 def barplot_01b(
     df, x, y, orientation='h', color=None, 
