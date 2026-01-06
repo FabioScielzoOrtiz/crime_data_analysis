@@ -18,9 +18,9 @@ OUTPUT_FILE = os.path.join(OUTPUT_DIR, 'processed_unodc_intentional_homicide_rat
 
 # Filters
 TARGET_INDICATOR = 'Victims of intentional homicide'
-TARGET_UNIT = 'Rate per 100,000 population'
+#TARGET_UNIT = 'Rate per 100,000 population'
 TARGET_SHEET = 'data_cts_intentional_homicide'
-COLS_REMOVE = ['Iso3_code', 'Indicator', 'Unit of measurement', 'Source']
+COLS_REMOVE = ['Iso3_code', 'Indicator', 'Source']
 
 def main():
     try:
@@ -41,32 +41,50 @@ def main():
         logger.info("🧹 Processing the data...")
 
         df = df.filter(
-            (pl.col('Indicator') == TARGET_INDICATOR) &
-            (pl.col('Unit of measurement') == TARGET_UNIT)
-            ).drop(COLS_REMOVE)\
-             .rename({'VALUE': 'homicides_rate'})\
-             .with_columns(pl.col('homicides_rate').round(2))\
-             .with_columns(
-                    pl.when(pl.col("Country") == "Spain")
-                    .then(pl.lit("Spain"))   
-                    .when(pl.col("Country") == "United States of America") 
-                    .then(pl.lit("USA"))      
-                    .otherwise(pl.col("Region"))  
-                    .alias("Region_2")         
-            ).with_columns(
-                    pl.col('Region_2').replace({'Americas': 'Latam'}),
-                    pl.col('Country').replace(
-                        {
-                            'United Kingdom (England and Wales)': 'United Kingdom',
-                            'Venezuela (Bolivarian Republic of)': 'Venezuela',
-                            'United States of America': 'USA'
-                        }
-                    )
-            ).sort(
-                ["Country", "Year"]
-            ).with_columns(
-                homicides_rate_abs_change = (pl.col("homicides_rate").diff().over(["Country", "Dimension", "Category", "Sex", "Age"])).round(2)
-            )
+            (pl.col('Indicator') == TARGET_INDICATOR) 
+            ).drop(COLS_REMOVE)
+
+        df_rates = df.filter(pl.col('Unit of measurement') == 'Rate per 100,000 population').rename({'VALUE': 'homicides_rate'})
+        df_counts = df.filter(pl.col('Unit of measurement') == 'Counts').rename({'VALUE': 'homicides_count'})
+
+        join_cols = ["Country", "Region", "Subregion", "Year", "Dimension", "Category", "Sex", "Age"]
+
+        df = (
+            df_rates.join(
+                df_counts.select(join_cols + ['homicides_count']), # Solo traemos la columna de valor y las llaves
+                on=join_cols, 
+                how='inner' # Inner para asegurar que tenemos ambos datos
+            ).drop("Unit of measurement")
+        ).with_columns( # CÁLCULO DE POBLACIÓN
+                # Evitamos división por cero. Si la tasa es 0, no podemos calcular población así.
+                # En esos casos (raros en totales nacionales), la población quedará nula.
+                population = pl.when(pl.col('homicides_rate') > 0)
+                            .then((pl.col('homicides_count') * 100000) / pl.col('homicides_rate'))
+                            .otherwise(None)
+                            .round(0).cast(pl.Int64) # Población entera
+        ).with_columns(
+            pl.col('homicides_rate').round(2)
+        ).with_columns(
+                pl.when(pl.col("Country") == "Spain")
+                .then(pl.lit("Spain"))   
+                .when(pl.col("Country") == "United States of America") 
+                .then(pl.lit("USA"))      
+                .otherwise(pl.col("Region"))  
+                .alias("Region_2")         
+        ).with_columns(
+                pl.col('Region_2').replace({'Americas': 'Latam'}),
+                pl.col('Country').replace(
+                    {
+                        'United Kingdom (England and Wales)': 'United Kingdom',
+                        'Venezuela (Bolivarian Republic of)': 'Venezuela',
+                        'United States of America': 'USA'
+                    }
+                )
+        ).sort(
+            ["Country", "Dimension", "Category", "Sex", "Age", "Year"]
+        ).with_columns(
+            homicides_rate_abs_change = (pl.col("homicides_rate").diff().over(["Country", "Dimension", "Category", "Sex", "Age"])).round(2)
+        )
 
         # 4. Save to CSV
         if not os.path.exists(OUTPUT_DIR):

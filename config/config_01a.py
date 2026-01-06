@@ -47,6 +47,12 @@ SELECTED_COUNTRIES = [
 
 #################################################################################################################
 
+REF_REGION_FOR_START_YEAR = 'Europe'
+
+PROP_YEARS_IN_PERIOD_LIMIT = 0.65
+
+#################################################################################################################
+
 COLOR_MAP = {}
 
 COLOR_MAP['Region_2'] = {
@@ -75,9 +81,7 @@ CATEGORY_ORDERS = {
 HOVER_DATA = {} 
 
 HOVER_DATA['time_series_country'] = {
-    "Region": False,    
-    "Region_2": False,    
-    "Subregion": False,    
+    "Region_2": False,
     "Country": True ,     
     "Year": True,        
     "homicides_rate": True, 
@@ -124,7 +128,7 @@ LABELS['ranking'] = {
 HOVER_TEMPLATES = {}
 
 HOVER_TEMPLATES['time_series_country'] = (
-        "<b style='font-size: 14px'>%{customdata[3]}</b><br>" 
+        "<b style='font-size: 14px'>%{customdata[1]}</b><br>" 
         "<br>" 
         
         # Línea 1: AÑO
@@ -134,7 +138,7 @@ HOVER_TEMPLATES['time_series_country'] = (
         "<b>Tasa de Homicidios:</b> %{y:.2f}<br>"
         
         # Línea 3: VARIACIÓN (Usando tu etiqueta exacta y formato +.2f)
-        "<b>Variación Absoluta:</b> %{customdata[4]:+.2f}"
+        "<b>Variación Absoluta:</b> %{customdata[2]:+.2f}"
         
         # Ocultamos la etiqueta secundaria de la derecha
         "<extra></extra>"
@@ -173,10 +177,6 @@ HOVER_TEMPLATES['ranking_region'] = (
         
         "<extra></extra>"
     )
-
-#################################################################################################################
-
-PROP_YEARS_IN_PERIOD_LIMIT = 0.65
 
 #################################################################################################################
 
