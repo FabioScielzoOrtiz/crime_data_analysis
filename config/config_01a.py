@@ -51,6 +51,26 @@ REF_REGION_FOR_START_YEAR = 'Europe'
 
 PROP_YEARS_IN_PERIOD_LIMIT = 0.65
 
+AGE_MAPPING = {
+    # Niñez
+    "0-9": "0-9",
+    "10 -14": "10-14",
+    
+    # Juventud (El grupo más fragmentado)
+    "15 -17": "15-19",
+    "18-19": "15-19",
+    "20-24": "20-29",
+    "25-29": "20-29",
+    
+    # Adultos (Mantener formato consistente)
+    "30-44": "30-44",
+    "45-59": "45-59",
+    "60 and older": "60+",
+    
+    # Dejar 'Total' igual o excluirlo luego
+    "Total": "Total"
+}
+
 #################################################################################################################
 
 COLOR_MAP = {}
@@ -73,7 +93,8 @@ COLOR_MAP['Sex'] = {
 
 CATEGORY_ORDERS = {
     "Region_2": ["Spain", "USA", "Europe", "Latam", "Africa", "Asia"],
-    "Sex": ["Female", "Male",]
+    "Sex": ["Female", "Male"],
+    "Age": ["0-9", "10-14", "15-19", "20-29", "30-44", "45-59", "60+"]
 }
 
 #################################################################################################################

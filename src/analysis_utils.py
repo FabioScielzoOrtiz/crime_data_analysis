@@ -130,11 +130,11 @@ def process_time_series_data(
 
         if age_mapping:
             
-            df_pre = df.with_columns(
+            df_pre = df_pre.with_columns(
                 pl.col('Age').replace(age_mapping) 
             )
         
-        df_pre = df.filter(
+        df_pre = df_pre.filter(
             country_filter &
             (pl.col('Dimension') == 'Total') &
             (pl.col('Category') == 'Total') &
