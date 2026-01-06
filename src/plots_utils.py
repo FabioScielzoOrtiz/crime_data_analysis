@@ -1,12 +1,13 @@
 import plotly.express as px
 from plotly.subplots import make_subplots
 import polars as pl
+import numpy as np  
 
 #################################################################################################################
 
 def time_series_plot(
         df, x, y, height=600, title=None, line_group=None, color=None, 
-        line_dash=None, facet_col=None, facet_row=None,      
+        line_dash=None, facet_col=None, facet_row=None,  facet_col_wrap=None,    
         color_discrete_map=None, category_orders=None, 
         hover_name=None, hover_data=None, labels=None, 
         hovertemplate=None, title_size=20, x_ticks_size=14, x_title_size=16, 
@@ -18,7 +19,8 @@ def time_series_plot(
     # Crear el gráfico de líneas
     fig = px.line(
         df, x=x, y=y, color=color, line_group=line_group,
-        line_dash=line_dash, facet_col=facet_col, facet_row=facet_row,
+        line_dash=line_dash, facet_col=facet_col, 
+        facet_row=facet_row, facet_col_wrap=facet_col_wrap,
         hover_name=hover_name, title=title, hover_data=hover_data, 
         markers=True, category_orders=category_orders, 
         color_discrete_map=color_discrete_map, labels=labels
@@ -78,106 +80,46 @@ def time_series_plot(
 
 #################################################################################################################
 
-def barplot_01a(
-    df, x, y, height=600, orientation=None, color=None, 
-    color_discrete_map=None, hover_data=None, 
-    labels=None, hovertemplate=None, 
-    category_orders=None, title=None,
-    title_size=20, x_ticks_size=14, x_title_size=16, 
-    y_ticks_size=14, y_title_size=16, 
-    legend_size=14, legend_title_size=16,
-    plot_save_path=None, show=None
-    ):
-
-    fig = px.bar(
-        df,
-        x=x,
-        y=y,
-        orientation=orientation,       # Barras Horizontales
-        color=color,   
-        title=title,
-        hover_data=hover_data,
-        category_orders=category_orders, 
-        color_discrete_map=color_discrete_map,
-        labels=labels
-    )
-
-    fig.update_traces(
-        hovertemplate=hovertemplate
-    )
-
-    fig.update_layout(
-        plot_bgcolor='white',      # Fondo limpio
-        showlegend=True,          
-        height=height,                # Altura ajustada a la cantidad de países
-        xaxis=dict(
-            showgrid=True, 
-            gridcolor='#f0f0f0',
-            #side='top',           
-            tickfont=dict(size=x_ticks_size), 
-            title_font=dict(size=x_title_size)
-        ),
-        yaxis=dict(
-            showgrid=False,
-            categoryorder='total ascending',
-            tickfont=dict(size=y_ticks_size), 
-            title_font=dict(size=y_title_size)  
-        ),
-        title=dict(
-            text=f"<b>{title}</b>" if title else None, # Inyectamos HTML para negrita
-            font=dict(size=title_size),
-            x=0.5, # Opcional: Centrar título (si no te gusta, borra esta línea)
-            xanchor='center'
-        ),
-        legend=dict(
-            font=dict(size=legend_size),
-            title_font=dict(size=legend_title_size) # El título de la leyenda un pelín más grande
-        )
-    )
-
-    # Personalizar el texto de las barras (hacerlo negrita y legible)
-    fig.update_traces(
-        textfont_size=12, 
-        textangle=0, 
-        textposition="outside", # Poner número fuera si la barra es muy corta
-        cliponaxis=False        # Permitir que el texto sobresalga del gráfico si es necesario
-    )
-     
+def barplot(
+    df, x, y, 
+    # --- Datos y Facets ---
+    facet_col=None,          # Columna para dividir (ej. 'Periodo', 'Sex')
+    cols_wrap=2,             # Columnas en el grid (si hay facet)
+    orientation='h', 
+    color=None, 
     
-    if plot_save_path:
-        # Guardar el archivo
-        fig.write_html(
-            plot_save_path,
-            include_plotlyjs='cdn', 
-            full_html=True 
-        )
-    
-    if show:
-        # Mostrar
-        fig.show()
-
-#################################################################################################################
-
-def barplot_01b(
-    df, x, y, orientation='h', color=None, 
+    # --- Configuración Visual ---
     barmode=None,
+    color_discrete_map=None, 
+    hover_data=None, 
+    labels=None, 
+    hovertemplate=None, 
+    title=None,
+    
+    # --- Colores Eje Y (HTML) ---
     yticks_color_column=None,     
     yticks_color_map=None,  
-    color_discrete_map=None, hover_data=None, 
-    labels=None, hovertemplate=None, 
-    category_orders=None, title=None,
-    plot_save_path=None, show=None, height=800,
-    facet_col=None,
-    reverse_y_order=False,
-    # --- CONFIGURACIÓN DE TAMAÑOS ---
-    x_ticks_size=14, x_title_size=16, 
-    y_ticks_size=14, y_title_size=16,
-    title_size=20,       
-    legend_size=13,      
-    legend_title_size=15 
+    
+    # --- Control de Orden ---
+    reverse_y_order=False,   # False = Mayor arriba (Top), True = Menor arriba
+    
+    # --- Output ---
+    plot_save_path=None, 
+    show=None, 
+    height=800,
+    
+    # --- Estilos y Tamaños ---
+    title_size=20, 
+    x_ticks_size=12, x_title_size=14, 
+    y_ticks_size=12, y_title_size=14, 
+    legend_size=13, legend_title_size=15,
+    
+    # --- Espaciado (Solo para facets) ---
+    horizontal_spacing=0.15,
+    vertical_spacing=0.1
     ):
 
-    # Configuración base del Layout
+    # 1. Configuración base del Layout (Común para todos)
     layout_args = dict(
         plot_bgcolor='white',      
         title=dict(
@@ -191,13 +133,17 @@ def barplot_01b(
         height=height
     )
     
-    # -------------------------------------------------------------------------
-    # CASO 1: SIN FACET (Comportamiento Estándar)
-    # -------------------------------------------------------------------------
+    # Definir dirección de ordenamiento (Plotly dibuja de abajo a arriba)
+    # descending=False -> [1, 10, 100] -> 100 queda arriba.
+    sort_descending = True if reverse_y_order else False
+
+    # =========================================================================
+    # RAMA A: GRÁFICO SIMPLE (SIN FACETS)
+    # =========================================================================
     if not facet_col:
         tick_vals, tick_text = None, None
         
-        # 1. Calcular orden y ORDENAR EL DF
+        # A.1. Calcular orden global y Textos HTML (si aplica)
         if yticks_color_column and yticks_color_map:
             stats_df = (
                 df.group_by(y)
@@ -205,12 +151,13 @@ def barplot_01b(
                     pl.col(x).sum().alias("total_metric"),       
                     pl.col(yticks_color_column).first().alias("region_name") 
                 ])
-                .sort("total_metric", descending=False if not reverse_y_order else True) 
+                .sort("total_metric", descending=sort_descending) 
             )
             ordered_items = stats_df[y].to_list()
             ordered_regions = stats_df["region_name"].to_list()
             
-            df_sorted = df.sort(x, descending=False if not reverse_y_order else True)
+            # Ordenar el DF original para alinear la visualización
+            df_sorted = df.sort(x, descending=sort_descending)
             
             try:
                 tick_text = [
@@ -223,11 +170,12 @@ def barplot_01b(
                 tick_text = ordered_items
 
         else:
-            df_sorted = df
+            # Si no hay colores especiales, solo ordenamos por la métrica
+            df_sorted = df.sort(x, descending=sort_descending)
             ordered_items = None
             tick_vals = None
 
-        # 2. Crear Gráfico
+        # A.2. Crear Gráfico Simple
         fig = px.bar(
             df_sorted, x=x, y=y, orientation=orientation, color=color,
             barmode=barmode, title=title, hover_data=hover_data,
@@ -235,11 +183,11 @@ def barplot_01b(
             labels=labels
         )
         
-        # 3. Estilos Eje Y
+        # A.3. Estilos Eje Y
         y_axis_config = dict(
             tickfont=dict(size=y_ticks_size),
             title_font=dict(size=y_title_size),
-            automargin=True # Asegura espacio para etiquetas largas
+            automargin=True
         )
         
         if tick_vals:
@@ -254,36 +202,49 @@ def barplot_01b(
             
         fig.update_yaxes(**y_axis_config)
 
-        # 4. Estilos Eje X
+        # A.4. Estilos Eje X
         fig.update_xaxes(
             tickfont=dict(size=x_ticks_size),       
             title_font=dict(size=x_title_size),     
             showgrid=True, gridcolor='#f0f0f0'
         )
 
-    # -------------------------------------------------------------------------
-    # CASO 2: CON FACET_COL (Modo Orden Independiente)
-    # -------------------------------------------------------------------------
+    # =========================================================================
+    # RAMA B: GRÁFICO CON FACETS (GRID COMPARATIVO O INDEPENDIENTE)
+    # =========================================================================
     else:
+        # B.1. Preparar Grid
         facet_vals = df[facet_col].unique().to_list()
-        facet_vals.sort() 
-
+        facet_vals.sort() # Ordenar facets (ej. cronológicamente o alfabéticamente)
+        
+        num_plots = len(facet_vals)
+        num_rows = int(np.ceil(num_plots / cols_wrap))
+        
+        # B.2. Crear Figura con Subplots
         fig = make_subplots(
-            rows=1, cols=len(facet_vals), 
+            rows=num_rows, cols=cols_wrap, 
             subplot_titles=facet_vals,
-            shared_yaxes=False,   
-            horizontal_spacing=0.15 
+            shared_xaxes=True,    # Compartir X para comparar magnitudes
+            shared_yaxes=False,   # Y Independiente para respetar rankings distintos
+            horizontal_spacing=horizontal_spacing,
+            vertical_spacing=vertical_spacing
         )
 
         seen_legends = set()
 
+        # B.3. Iterar Subplots
         for i, val in enumerate(facet_vals):
+            row = (i // cols_wrap) + 1
+            col = (i % cols_wrap) + 1
+            
+            # Filtrar datos del facet actual
             sub_df = df.filter(pl.col(facet_col) == val)
             
+            # Variables locales para este subplot
             current_tick_vals = None
             current_tick_text = None
             
-            # 1. Calcular orden
+            # B.3.1. Calcular orden ESPECÍFICO para este facet
             if yticks_color_column and yticks_color_map:
                 stats_df = (
                     sub_df.group_by(y)
@@ -291,7 +252,7 @@ def barplot_01b(
                         pl.col(x).sum().alias("total_metric"),       
                         pl.col(yticks_color_column).first().alias("region_name") 
                     ])
-                    .sort("total_metric", descending=False if not reverse_y_order else True)
+                    .sort("total_metric", descending=sort_descending)
                 )
                 ordered_items = stats_df[y].to_list()
                 ordered_regions = stats_df["region_name"].to_list()
@@ -304,17 +265,23 @@ def barplot_01b(
                     current_tick_vals = ordered_items
                 except KeyError:
                     current_tick_vals = ordered_items
+            else:
+                # Si no hay config de colores, calculamos el orden basado solo en la métrica
+                # Esto es necesario para tickvals si queremos forzar el orden
+                temp_sort = sub_df.sort(x, descending=sort_descending)
+                current_tick_vals = temp_sort[y].unique(maintain_order=True).to_list()
             
-            # 2. Ordenar DF
-            sub_df_sorted = sub_df.sort(x, descending=False if not reverse_y_order else True)
+            # B.3.2. Ordenar el DF localmente (Clave para Plotly Horizontal)
+            sub_df_sorted = sub_df.sort(x, descending=sort_descending)
 
-            # 3. Generar trazas
+            # B.3.3. Generar trazas auxiliares
             aux_fig = px.bar(
                 sub_df_sorted, x=x, y=y, orientation=orientation, color=color,
                 color_discrete_map=color_discrete_map,
                 hover_data=hover_data, labels=labels
             )
             
+            # B.3.4. Añadir trazas y gestionar leyenda
             for trace in aux_fig.data:
                 trace_name = trace.name 
                 if trace_name not in seen_legends:
@@ -322,24 +289,24 @@ def barplot_01b(
                     seen_legends.add(trace_name)
                 else:
                     trace.showlegend = False
-                fig.add_trace(trace, row=1, col=i+1)
+                fig.add_trace(trace, row=row, col=col)
             
-            # 4. Actualizar Eje Y (AQUÍ ESTABA EL ERROR)
+            # B.3.5. Actualizar Eje Y del Subplot
             y_update_args = dict(
-                row=1, col=i+1,
+                row=row, col=col,
                 showgrid=False,
                 tickfont=dict(size=y_ticks_size),
                 title_font=dict(size=y_title_size),
-                # --- NUEVO: AÑADIMOS EL TEXTO DEL TÍTULO EXPLÍCITAMENTE ---
-                title_text=labels.get(y, y) if labels else y,
-                automargin=True # Importante para que no se coma el texto
+                title_text=labels.get(y, y) if labels else y, # Forzar título Y
+                automargin=True
             )
             
-            if current_tick_vals and current_tick_text:
+            # Aplicar orden forzado y colores si existen
+            if current_tick_vals:
                 y_update_args.update(dict(
                     tickmode='array', 
                     tickvals=current_tick_vals, 
-                    ticktext=current_tick_text,
+                    ticktext=current_tick_text if current_tick_text else current_tick_vals,
                     type='category', 
                     categoryorder='array', 
                     categoryarray=current_tick_vals 
@@ -347,18 +314,21 @@ def barplot_01b(
             
             fig.update_yaxes(**y_update_args)
             
-            # 5. Actualizar Eje X
+            # B.3.6. Actualizar Eje X del Subplot
+            # Solo mostrar título en la última fila si compartimos ejes, o siempre si es necesario
+            show_x_title = (row == num_rows)
+            
             fig.update_xaxes(
-                title_text=labels.get(x, x) if labels else x,
-                row=1, col=i+1, 
+                title_text=labels.get(x, x) if labels and show_x_title else (x if show_x_title else None),
+                row=row, col=col, 
                 showgrid=True, gridcolor='#f0f0f0',
                 tickfont=dict(size=x_ticks_size),
                 title_font=dict(size=x_title_size)
             )
 
-    # -------------------------------------------------------------------------
-    # AJUSTES FINALES
-    # -------------------------------------------------------------------------
+    # =========================================================================
+    # AJUSTES FINALES COMUNES
+    # =========================================================================
     fig.update_traces(hovertemplate=hovertemplate)
     fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
     
@@ -369,5 +339,3 @@ def barplot_01b(
     
     if show:
         fig.show()
-                
-#################################################################################################################   

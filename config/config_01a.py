@@ -51,7 +51,7 @@ COLOR_MAP = {}
 
 COLOR_MAP['Region_2'] = {
     "Spain": "#FF0000",  # Rojo brillante
-    "USA": "#13020D",
+    "USA": "#055509",
     "Europe": "#0883db",     # Azul
     "Latam": "#2ca02c",   # Verde
     "Asia": "#ff7f0e",       # Naranja
