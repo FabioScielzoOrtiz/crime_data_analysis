@@ -78,8 +78,11 @@ def main():
                         'United Kingdom (England and Wales)': 'United Kingdom',
                         'Venezuela (Bolivarian Republic of)': 'Venezuela',
                         'United States of America': 'USA'
-                    }
-                )
+                    }),
+                pl.col('Category').replace({
+                        'Socio-political homicide - terrorist offences': 'Terrorist homicide',
+
+                        })
         ).sort(
             ["Country", "Dimension", "Category", "Sex", "Age", "Year"]
         ).with_columns(

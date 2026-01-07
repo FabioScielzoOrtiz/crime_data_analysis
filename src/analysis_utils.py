@@ -79,7 +79,8 @@ def process_time_series_data(
     prop_years_in_period_limit, 
     ref_region_for_start_year='Europe',
     by=None,             # 'Sex', 'Age', 'Category' o None
-    age_mapping=None     # Solo requerido si by='Age'
+    age_mapping=None,     # Solo requerido si by='Age'
+    dimension=None
 ):
     """
     Genera DataFrames de series temporales filtrando dinámicamente por:
@@ -97,21 +98,26 @@ def process_time_series_data(
     
     # Filtro común para todos los casos: Solo los países seleccionados
     country_filter = pl.col('Country').is_in(selected_countries)
-
+    
+    init_msg = f"⚙️ Procesando desglose por: {by.upper()}" if by else f"⚙️ Procesando desglose por: TOTAL PAÍS"
+    print(init_msg)
+    print('-'*80)
+    
     if by == 'Category':
         # --- NUEVO CASO: SITUATIONAL CONTEXT ---
-        print("⚙️ Procesando desglose por: SITUATIONAL CONTEXT (Category)")
+       
         df_country = df.filter(
             country_filter &
-            (pl.col('Dimension') == 'by situational context') & # Dimensión específica
-            (pl.col('Category') != 'Total') &                   # Queremos las subcategorías
+            (pl.col('Dimension') == dimension) & # Dimensión específica
+            (pl.col('Category') != 'Total') &    # Queremos las subcategorías
             (pl.col('Sex') == 'Total') &
             (pl.col('Age') == 'Total')
         )
 
+
     elif by == 'Sex':
         # --- CASO SEXO ---
-        print("⚙️ Procesando desglose por: SEXO")
+
         df_country = df.filter(
             country_filter &
             (pl.col('Dimension') == 'Total') &
@@ -122,7 +128,6 @@ def process_time_series_data(
 
     elif by == 'Age':
         # --- CASO EDAD ---
-        print("⚙️ Procesando desglose por: EDAD")
 
         # A. Pre-filtro y Mapeo
         
@@ -175,7 +180,7 @@ def process_time_series_data(
 
     else:
         # --- CASO TOTAL (Headline Rate) ---
-        print("⚙️ Procesando serie: TOTAL PAÍS")
+
         df_country = df.filter(
             country_filter &
             (pl.col('Dimension') == 'Total') &
@@ -183,9 +188,18 @@ def process_time_series_data(
             (pl.col('Sex') == 'Total') &
             (pl.col('Age') == 'Total')
         )
+    
+
+    countries_with_data = df_country['Country'].unique().to_list()
+    countries_without_data = [c for c in selected_countries if c not in countries_with_data]
+    print(f'📊 Paises SIN datos de este tipo:')
+    print(f'   - Número: {len(countries_without_data)} de {len(selected_countries)}')
+    print(f'   - Lista: {countries_without_data}')
+    print('-'*80)
 
     # Ordenamiento final (Vital para visualización)
     df_time_series['country'] = df_country.sort(["Country", "Year"])
+    
 
     # -------------------------------------------------------------------------
     # 2. DEFINICIÓN DEL PERIODO (Automático basado en Región ref)
@@ -241,7 +255,7 @@ def process_time_series_data(
     )
 
     # Logs de control
-    print(f"📅 Periodo: {min_year}-{max_year}")
+    print(f"📅 Periodo para región: {min_year}-{max_year}")
     print(f"✅ Países válidos para región: {len(countries_with_enough_data)} de {len(selected_countries)}")
     print('-'*80)
 
